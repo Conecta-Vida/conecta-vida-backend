@@ -1,0 +1,38 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management'
+}
+
+java {
+    sourceCompatibility = '21'
+}
+
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = true
+}
+
+dependencies {
+    // 🟢 MUDANÇA IMPORTANTE: Trocamos 'implementation' por 'api'
+    // Assim, o Admin API e o Mobile API herdam essas ferramentas automaticamente!
+
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-mail'
+    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    api 'org.mapstruct:mapstruct:1.5.5.Final'
+    api 'org.flywaydb:flyway-core'
+    api 'org.flywaydb:flyway-database-postgresql'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    annotationProcessor 'org.projectlombok:lombok'
+
+
+    // O driver do banco continua escondido, pois as APIs não precisam dele diretamente
+    runtimeOnly 'org.postgresql:postgresql'
+}

@@ -1,0 +1,5 @@
+rootProject.name = 'conecta-vida-backend'
+
+include 'core'
+include 'admin-api'
+include 'mobile-api'
