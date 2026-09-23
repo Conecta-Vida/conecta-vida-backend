@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Servidor de Filas Assíncronas (Fase 3)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: conectavida-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    restart: always
+
+  # Servidor de Cache em Memória RAM (Fase 2)
+  redis:
+    image: redis:alpine
+    container_name: conectavida-redis
+    ports:
+      - "6379:6379"
+    restart: always

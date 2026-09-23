@@ -1,72 +1,57 @@
 package br.edu.ifsp.conectaavida.core.security;
 
-import br.edu.ifsp.conectaavida.core.service.PushTokenRegistry;
+import br.edu.ifsp.conectaavida.core.config.RabbitMQConfig;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
 import java.util.Map;
-import java.util.Set;
+import java.util.HashMap;
 
 /**
- * SERVIÇO DE DISPARO DE NOTIFICAÇÕES (Firebase Cloud Messaging)
+ * SERVIÇO DE NOTIFICAÇÕES ASSÍNCRONAS (RabbitMQ)
  *
- * Objetivo: Conectar nossa API com os servidores da Google para fazer
- * o celular do cidadão vibrar e exibir um Alerta Emergencial.
+ * Firebase removido. Esta classe adota o padrão orientado a eventos (Fase 3 da Arquitetura).
+ * A thread HTTP é liberada imediatamente, evitando gargalos de escalabilidade.
  */
 @Service
 public class FcmService {
 
-    // Lê a Server Key (Chave do Google) do application.properties
-    @Value("${fcm.server.key:COLOQUE_A_SERVER_KEY_AQUI}")
-    private String serverKey;
-
     @Autowired
-    private PushTokenRegistry tokenRegistry;
-
-    private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
+    private RabbitTemplate rabbitTemplate; // Ferramenta do Spring para enviar mensagens à fila
 
     /**
-     * Monta o pacote de dados (Payload) e dispara para todos os celulares da lista.
+     * 1. PRODUTOR (Chamado pelos Controllers de Alerta/Campanha)
+     * Não trava o servidor. Apenas empacota os dados e joga na fila do RabbitMQ.
      */
     public void enviarParaTodos(String titulo, String corpo, Map<String, String> dados) {
 
-        // Pega todos os celulares registrados na memória
-        Set<String> tokens = tokenRegistry.obterTodosOsTokens();
+        Map<String, String> payload = new HashMap<>();
+        payload.put("titulo", titulo);
+        payload.put("corpo", corpo);
 
-        if (tokens.isEmpty()) {
-            System.out.println("⚠️ FCM: Nenhum dispositivo registrado para receber push.");
-            return;
-        }
+        // Envia para a esteira em background
+        rabbitTemplate.convertAndSend(RabbitMQConfig.FILA_NOTIFICACOES, payload);
 
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "key=" + serverKey);
+        System.out.println("🚀 [PRODUTOR] Tarefa de notificação enviada para a fila com sucesso!");
+    }
 
-        // Dispara a notificação um por um (Em escala nacional, isso seria movido para o RabbitMQ/Kafka)
-        for (String token : tokens) {
-            try {
-                // Estrutura exigida pela API Legada do Google Firebase
-                Map<String, Object> payload = Map.of(
-                        "to", token,
-                        "priority", "high",
-                        "notification", Map.of(
-                                "title", titulo,
-                                "body", corpo,
-                                "sound", "default"
-                        ),
-                        "data", dados != null ? dados : Map.of()
-                );
+    /**
+     * 2. CONSUMIDOR (WORKER EM BACKGROUND)
+     * Fica escutando a fila invisivelmente. Quando chega uma mensagem, ele a processa
+     * sem afetar o tempo de resposta do cidadão ou do gestor.
+     */
+    @RabbitListener(queues = RabbitMQConfig.FILA_NOTIFICACOES)
+    public void processarFilaEmBackground(Map<String, String> payload) {
 
-                HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
-                ResponseEntity<String> response = restTemplate.postForEntity(FCM_URL, request, String.class);
+        String titulo = payload.get("titulo");
+        String corpo = payload.get("corpo");
 
-                System.out.println("✅ FCM enviado. Status: " + response.getStatusCode());
-            } catch (Exception e) {
-                System.err.println("❌ FCM: Erro ao enviar push: " + e.getMessage());
-            }
-        }
+        // Simulação do envio (O Firebase foi erradicado do projeto)
+        System.out.println("🔔 [WORKER ASSÍNCRONO] Processando notificação em lote...");
+        System.out.println("➡️ Título: " + titulo);
+        System.out.println("➡️ Corpo: " + corpo);
+        System.out.println("✅ Disparo simulado concluído perfeitamente!");
     }
 }
