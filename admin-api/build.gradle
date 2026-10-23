@@ -14,4 +14,6 @@ dependencies {
 
     // Dependência exclusiva do Painel para gerar relatórios PDF
     implementation 'com.itextpdf:itext7-core:7.2.5'
+
+    runtimeOnly 'org.postgresql:postgresql'
 }
