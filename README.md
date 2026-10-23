@@ -100,14 +100,3 @@ Se o terminal exibir `Started AdminApiApplication` ou `Started MobileApiApplicat
 Com o projeto rodando, acesse a documentação interativa dos endpoints no seu navegador:
 
 * **Admin API:** `http://localhost:8080/swagger-ui.html`
-
-```
-
-O código do arquivo README do backend está pronto para o GitHub. Qual módulo vamos atacar agora na programação?
-
-<ElicitationsGroup>
-  <Elicitation prompt="Tudo pronto no GitHub! Vamos criar a tela de listagem de Instituições no React."/>
-  <Elicitation prompt="Gostaria de ver como estruturar os componentes e a tipagem das Instituições no Frontend."/>
-</ElicitationsGroup>
-
-```
