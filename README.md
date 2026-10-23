@@ -27,7 +27,7 @@ Antes de baixar o projeto, certifique-se de que sua máquina possui as seguintes
 ### Passo 1: Clonar o Repositório
 Abra o seu terminal e clone o projeto para a sua máquina:
 ```bash
-git clone URL_DO_SEU_REPOSITORIO_AQUI
+https://github.com/Conecta-Vida/conecta-vida-backend.git
 cd conecta-vida-backend
 
 ```
