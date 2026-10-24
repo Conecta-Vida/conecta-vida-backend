@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * CONTROLLER DE CAMPANHAS DE SAÚDE (Mutirões)
- */
 @RestController
 @RequestMapping("/api/campanhas")
 public class CampanhaController {
@@ -23,26 +20,54 @@ public class CampanhaController {
     @Autowired
     private CampanhaService campanhaService;
 
-    // Retorna a lista de todas as campanhas ativas ou passadas
+    // Retorna a lista de todas as campanhas
     @GetMapping
     public ResponseEntity<List<Comunicacao>> listarCampanhas() {
         List<Comunicacao> campanhas = comunicacaoRepository.findByTipo("Campanha");
         return ResponseEntity.ok(campanhas);
     }
 
-    // Cria uma nova campanha no painel
+    // Cria uma nova campanha
     @PostMapping
     public ResponseEntity<Comunicacao> criarCampanha(@RequestBody Comunicacao campanha) {
         campanha.setTipo("Campanha");
-        campanha.setDataPostada(LocalDateTime.now());
+        if (campanha.getDataPostada() == null) {
+            campanha.setDataPostada(LocalDateTime.now());
+        }
         Comunicacao salva = comunicacaoRepository.save(campanha);
         return ResponseEntity.ok(salva);
     }
 
-    /**
-     * @PathVariable: Pega o número que vier na URL (ex: /api/campanhas/5/encerrar)
-     * e joga para dentro da variável "id".
-     */
+    // Atualiza uma campanha existente (PUT)
+    @PutMapping("/{id}")
+    public ResponseEntity<Comunicacao> atualizarCampanha(@PathVariable Long id, @RequestBody Comunicacao campanhaAtualizada) {
+        return comunicacaoRepository.findById(id)
+                .map(campanha -> {
+                    campanha.setTitulo(campanhaAtualizada.getTitulo());
+                    campanha.setDescricao(campanhaAtualizada.getDescricao());
+                    campanha.setStatus(campanhaAtualizada.getStatus());
+                    campanha.setDataInicio(campanhaAtualizada.getDataInicio());
+                    campanha.setDataFim(campanhaAtualizada.getDataFim());
+                    campanha.setCategoria(campanhaAtualizada.getCategoria());
+                    campanha.setLocalizacao(campanhaAtualizada.getLocalizacao());
+                    campanha.setPublicoAlvo(campanhaAtualizada.getPublicoAlvo());
+                    Comunicacao salva = comunicacaoRepository.save(campanha);
+                    return ResponseEntity.ok(salva);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Elimina uma campanha (DELETE)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarCampanha(@PathVariable Long id) {
+        if (comunicacaoRepository.existsById(id)) {
+            comunicacaoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    // Encerra uma campanha
     @PostMapping("/{id}/encerrar")
     public ResponseEntity<String> encerrarCampanha(@PathVariable Long id) {
         campanhaService.encerrarCampanha(id);

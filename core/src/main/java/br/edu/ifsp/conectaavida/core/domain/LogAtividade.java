@@ -1,35 +1,36 @@
 package br.edu.ifsp.conectaavida.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-/**
- * ENTIDADE: Trilha de Auditoria (Logs)
- *
- * Explicação para a Equipe:
- * Esta classe é o "dedo-duro" do sistema. Cada ação feita por um administrador no celular
- * ou no painel web (como salvar uma notícia ou apagar um alerta) é registrada aqui[cite: 2].
- */
 @Entity
-@Table(name = "logs_atividade", schema = "public")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Table(name = "logs_atividade")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LogAtividade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Vincula a ação diretamente a quem fez (Relacionamento com a tabela de Usuários)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @Column(name = "usuario_id", nullable = false)
+    private Long usuarioId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", insertable = false, updatable = false)
+    @JsonIgnoreProperties({"senha", "hibernateLazyInitializer", "handler"}) // Evita serializar a senha e dados internos do proxy
     private Usuario usuario;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String acao;
 
-    // insertable = false e updatable = false transferem a responsabilidade de colocar a hora para o PostgreSQL
-    @Column(name = "data_hora", nullable = false, insertable = false, updatable = false)
-    private LocalDateTime dataHora;
+    @Column(name = "data_hora", nullable = false)
+    private LocalDateTime dataHora = LocalDateTime.now();
 }
