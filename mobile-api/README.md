@@ -25,7 +25,7 @@ Na raiz do repositório:
 
 ```bash
 docker build -f mobile-api/Dockerfile -t conecta-vida-mobile-api .
-docker run --rm --env-file .env -p 8081:8081 connects-vida-mobile-api
+docker run --rm --env-file .env -p 8081:8081 conecta-vida-mobile-api
 ```
 
 O container usa a porta definida pela variável `PORT` quando fornecida; localmente, o padrão é `8081`.
