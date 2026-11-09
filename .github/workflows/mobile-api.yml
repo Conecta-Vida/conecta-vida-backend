@@ -20,3 +20,5 @@ jobs:
           gradle-version: "8.14.4"
       - name: Build only mobile-api and shared core
         run: gradle --no-daemon :mobile-api:build
+      - name: Validate mobile API Docker image
+        run: docker build -f mobile-api/Dockerfile -t conecta-vida-mobile-api:ci .
