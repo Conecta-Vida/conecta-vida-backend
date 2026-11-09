@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: conecta-vida-mobile-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./mobile-api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: CONECTA_API_SALT
+        sync: false
+      - key: CONECTA_JWT_SECRET
+        generateValue: true
+      - key: CONECTA_MOBILE_CORS_ORIGINS
+        sync: false
