@@ -9,6 +9,12 @@ java {
 }
 
 dependencies {
-    // Importa as entidades, repositórios e as ferramentas do módulo base
+    // Módulo compartilhado de entidades e repositórios.
     implementation project(':core')
+
+    // Autenticação exclusiva do aplicativo cidadão.
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 }
