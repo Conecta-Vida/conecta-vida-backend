@@ -16,9 +16,10 @@ import java.security.MessageDigest;
 @Service
 public class PasswordEncryptionService {
 
-    // Lê o "Salt" do arquivo application.properties. Se não achar, usa um valor padrão.
-    // O Salt é uma palavra secreta misturada na senha antes de criptografar, blindando o sistema contra ataques de "Rainbow Tables".
-    @Value("${app.security.salt:ConectaVida_SecretSalt_2026_IFSP}")
+    // A propriedade é definida pelo application.properties de cada API.
+    // Na Mobile API, app.security.salt recebe o valor literal de CONECTA_API_SALT.
+    // Não use fallback aqui: o segredo deve ser configurado explicitamente no ambiente.
+    @Value("${app.security.salt}")
     private String salt;
 
     /**
