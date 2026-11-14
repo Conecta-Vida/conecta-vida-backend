@@ -100,3 +100,28 @@ Se o terminal exibir `Started AdminApiApplication` ou `Started MobileApiApplicat
 Com o projeto rodando, acesse a documentação interativa dos endpoints no seu navegador:
 
 * **Admin API:** `http://localhost:8080/swagger-ui.html`
+
+
+## Sistema de dependentes — Mobile API
+
+O sistema de dependentes adiciona uma tabela separada `public.dependentes`. Dependentes não possuem login, senha, e-mail ou CPF; cada registro pertence a um usuário titular por `usuario_titular_id`. Os endpoints ficam exclusivamente na `mobile-api`; não foram adicionados controllers ou fluxos administrativos.
+
+A entidade `Dependente` e o relacionamento opcional em `UsuarioCampanha` ficam no módulo compartilhado `core`. A migração SQL versionada está em `core/src/main/resources/db/migration/V2__dependentes_and_campaign_participants.sql`. O Flyway está habilitado nos módulos Admin e Mobile; por isso a migração aditiva será executada por qualquer API que inicialize com essa versão do módulo `core`, antes da validação do Hibernate. Não há alteração de controller, autenticação ou tela do Admin.
+
+### Endpoints da Mobile API
+
+Todas as rotas abaixo exigem JWT do titular:
+
+- `GET /api/usuarios/{usuarioId}/dependentes`
+- `GET /api/usuarios/{usuarioId}/dependentes/{dependenteId}`
+- `POST /api/usuarios/{usuarioId}/dependentes`
+- `PUT /api/usuarios/{usuarioId}/dependentes/{dependenteId}`
+- `DELETE /api/usuarios/{usuarioId}/dependentes/{dependenteId}` (inativação lógica)
+
+Na inscrição em campanha, `POST /api/campanhas/{id}/inscrever` aceita opcionalmente `{ "dependente_id": 123 }`. Sem esse campo, a inscrição é do titular. `DELETE /api/campanhas/{id}/desinscrever?dependente_id=123` cancela uma inscrição de dependente. `GET /api/campanhas/minhas` retorna o participante e o dependente associado a cada inscrição.
+
+### Atualizar o banco Supabase
+
+Em ambientes com Flyway ativo, a migração V2 é aplicada no deploy quando o arquivo estiver no classpath. Para executar manualmente, abra o SQL Editor do Supabase e execute o conteúdo de `core/src/main/resources/db/migration/V2__dependentes_and_campaign_participants.sql`. O script é idempotente; depois de aplicado manualmente, o Flyway poderá executá-lo sem recriar os objetos.
+
+Antes de produção, faça backup e verifique `flyway_schema_history`. Não remova a coluna antiga de usuário/campanha nem registros existentes. A exclusão de dependentes é lógica (`ativo=false)) para preservar o histórico de eventos.

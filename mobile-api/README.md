@@ -105,3 +105,57 @@ As rotas do perfil e das inscrições exigem `Authorization: Bearer <token>`.
 - A recuperação de senha retorna HTTP 501 porque o envio e a validação de e-mail ainda não estão configurados na Mobile API.
 - O registro dos tokens de push usa armazenamento em memória e não é persistente após reiniciar a API.
 - O envio real de notificações push precisa ser validado separadamente.
+
+
+## Sistema de dependentes (em desenvolvimento)
+
+Os dependentes não são contas de acesso e não são gravados na tabela `usuarios`. Eles ficam em `public.dependentes`, vinculados ao titular por `usuario_titular_id`. Não é solicitado CPF, e-mail nem senha do dependente.
+
+### Funcionalidades e endpoints da Mobile API
+
+Com um JWT do titular:
+
+- `GET /api/usuarios/{usuarioId}/dependentes`: lista dependentes ativos do titular.
+- `GET /api/usuarios/{usuarioId}/dependentes/{dependenteId}`: consulta um dependente ativo do titular.
+- `POST /api/usuarios/{usuarioId}/dependentes`: cadastra nome, data de nascimento, parentesco e sexo opcional.
+- `PUT /api/usuarios/{usuarioId}/dependentes/{dependenteId}`: atualiza os dados.
+- `DELETE /api/usuarios/{usuarioId}/dependentes/{dependenteId}`: inativa o dependente sem apagar seu histórico de inscrições.
+
+O campo `parentesco` recebe `Pai`, `Mãe`, `Cônjuge`, `Tutelado` ou outro texto informado pelo usuário. O backend valida o titular pelo JWT; o ID do titular no caminho deve corresponder ao usuário autenticado.
+
+Para inscrever um participante:
+
+```http
+POST /api/campanhas/{comunicacaoId}/inscrever
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "dependente_id": 123 }
+```
+
+Para inscrever o próprio titular, envie `{}` ou omita `dependente_id`. Para cancelar inscrição de dependente:
+
+```http
+DELETE /api/campanhas/{comunicacaoId}/desinscrever?dependente_id=123
+Authorization: Bearer <token>
+```
+
+O endpoint `GET /api/campanhas/minhas` retorna também `dependente_id`, `participante_nome` e `parentesco`, permitindo que o Flutter identifique quem participará. A inscrição do titular continua usando `dependente_id: null`.
+
+### Banco de dados / Supabase
+
+A migração versionada está em:
+
+`core/src/main/resources/db/migration/V2__dependentes_and_campaign_participants.sql`
+
+Como `spring.flyway.enabled=true` e o módulo `core` faz parte do classpath das APIs, a migração é aplicada pelo Flyway quando uma versão contendo esse arquivo é iniciada. A migração cria a tabela de dependentes, adiciona `dependente_id` a `usuarios_campanhas` e substitui a unicidade antiga por índices parciais que permitem várias pessoas do mesmo titular na mesma campanha.
+
+**Aplicação manual no Supabase (opcional):**
+
+1. Abra o projeto Supabase correto.
+2. Entre em **SQL Editor** e crie uma nova consulta.
+3. Copie o conteúdo completo do arquivo SQL acima.
+4. Execute e confira se `dependentes`, `dependente_id` e os índices foram criados.
+5. Não execute SQL diferente da migração versionada. O script usa `IF NOT EXISTS` para tolerar que a mesma estrutura já tenha sido criada manualmente antes de o Flyway executar a versão V2.
+
+Antes de produção, confira o histórico em `flyway_schema_history` e faça backup do banco. Não altere `usuarios`, não apague inscrições antigas e não execute a migração em um banco diferente do ambiente que será usado pelo serviço.
