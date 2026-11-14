@@ -172,6 +172,7 @@ public class CampanhaMobileController {
         Map<String, Object> response = new LinkedHashMap<>();
         Dependente dependente = inscricao.getDependente();
         response.put("inscricao_id", inscricao.getId());
+        response.put("usuario_id", inscricao.getUsuario().getId());
         response.put("comunicacao_id", inscricao.getComunicacao().getId());
         response.put("dependente_id", dependente == null ? null : dependente.getId());
         response.put("participante_nome", dependente == null
