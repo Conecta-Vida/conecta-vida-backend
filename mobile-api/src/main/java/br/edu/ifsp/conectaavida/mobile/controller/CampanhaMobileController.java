@@ -32,6 +32,26 @@ public class CampanhaMobileController {
         this.inscricaoRepository = inscricaoRepository;
     }
 
+    /**
+     * Retorna todas as campanhas em que o usuário autenticado está inscrito.
+     * Evita que o aplicativo precise consultar cada campanha individualmente.
+     */
+    @GetMapping("/minhas")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> minhasInscricoes(
+            @AuthenticationPrincipal String authenticatedUserId) {
+        Long usuarioId = Long.valueOf(authenticatedUserId);
+
+        List<Map<String, Object>> inscricoes = inscricaoRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(inscricao -> Map.<String, Object>of(
+                        "inscricao_id", inscricao.getId(),
+                        "comunicacao_id", inscricao.getComunicacao().getId()))
+                .toList();
+
+        return ResponseEntity.ok(inscricoes);
+    }
+
     @PostMapping("/{comunicacaoId}/inscrever")
     @Transactional
     public ResponseEntity<?> inscrever(
